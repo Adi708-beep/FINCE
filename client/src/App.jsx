@@ -5,13 +5,14 @@ import Navigation from './components/Navigation';
 
 // Import Pages
 import LandingPage from './pages/LandingPage';
-import PersonalAuth from './pages/PersonalAuth';
-import BusinessAuth from './pages/BusinessAuth';
+import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import UploadInvoice from './pages/UploadInvoice';
 import InvoiceHistory from './pages/InvoiceHistory';
 import Budgets from './pages/Budgets';
 import AIChat from './pages/AIChat';
+import IncomeSetup from './pages/IncomeSetup';
+import Settings from './pages/Settings';
 
 // Protect routes helper
 const ProtectedRoute = ({ children }) => {
@@ -63,25 +64,29 @@ function App() {
             } 
           />
 
-          {/* Dedicated Personal Workspace Auth */}
+          {/* Unified Login Flow */}
           <Route 
-            path="/personal" 
+            path="/login" 
             element={
               <PublicRoute>
-                <PersonalAuth />
+                <Auth mode="login" />
               </PublicRoute>
             } 
           />
 
-          {/* Dedicated Business Workspace Auth */}
+          {/* Unified Registration Flow */}
           <Route 
-            path="/business" 
+            path="/register" 
             element={
               <PublicRoute>
-                <BusinessAuth />
+                <Auth mode="register" />
               </PublicRoute>
             } 
           />
+
+          {/* Backward compatibility redirects */}
+          <Route path="/personal" element={<Navigate to="/register" replace />} />
+          <Route path="/business" element={<Navigate to="/register" replace />} />
 
           {/* Protected Financial Dashboard App */}
           <Route 
@@ -121,6 +126,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <AIChat />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/transactions" 
+            element={
+              <ProtectedRoute>
+                <IncomeSetup />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/settings" 
+            element={
+              <ProtectedRoute>
+                <Settings />
               </ProtectedRoute>
             } 
           />

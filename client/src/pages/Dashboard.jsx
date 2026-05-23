@@ -400,16 +400,38 @@ const Dashboard = () => {
 
           {/* Dynamic spending charts row */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Monthly Spending Area Chart */}
+            {/* Dynamic Spending Trend Area Chart */}
             <div className="bg-white border border-slate-200 p-6 lg:col-span-8 flex flex-col justify-between rounded-2xl shadow-sm">
-              <div>
-                <h4 className="font-bold text-base text-slate-900">Monthly Spending Trend</h4>
-                <p className="text-xs text-slate-500 mb-4">Expenditure timeline over the last 12 months</p>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                <div>
+                  <h4 className="font-bold text-base text-slate-900 capitalize">{spendingPeriod} Spending Trend</h4>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {spendingPeriod === 'daily' ? 'Expenditure timeline over the last 7 days' : spendingPeriod === 'yearly' ? 'Expenditure timeline over the last 5 years' : 'Expenditure timeline over the last 12 months'}
+                  </p>
+                </div>
+                
+                {/* Period Selector Toggle Switcher */}
+                <div className="flex p-0.5 bg-slate-100 rounded-xl border border-slate-200/50 self-start sm:self-auto">
+                  {['daily', 'monthly', 'yearly'].map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setSpendingPeriod(p)}
+                      className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
+                        spendingPeriod === p
+                          ? 'bg-white text-slate-900 shadow-sm border border-slate-200/10'
+                          : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                    >
+                      {p === 'daily' ? 'Daily' : p === 'yearly' ? 'Yearly' : 'Monthly'}
+                    </button>
+                  ))}
+                </div>
               </div>
               
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={(analyticsData?.monthlySpending || []).map(item => ({ name: item.name, amount: item.amount }))}>
+                  <AreaChart data={getChartData()}>
                     <defs>
                       <linearGradient id="colorMonthly" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.25}/>

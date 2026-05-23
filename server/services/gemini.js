@@ -518,7 +518,21 @@ export async function allocateBudgetWithAi({ totalLimit, categoryPercentages, ca
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     const prompt = `
-      Propose budget limits for ₹${totalLimit} across categories based on distribution: ${JSON.stringify(categoryPercentages)}
+      You are a smart financial budget allocator. Propose budget limits (numerical limits in INR) for a total monthly budget limit of ₹${totalLimit}.
+      Historical category spending percentages: ${JSON.stringify(categoryPercentages)}
+      The list of allowed categories to allocate is: ${JSON.stringify(categoriesList)}.
+      
+      You must respond ONLY with a JSON object in this exact format:
+      {
+        "allocations": {
+          "Groceries": 5000,
+          "Utilities": 3000,
+          "Food & Dining": 4000,
+          ...
+        },
+        "rationale": "A concise explanation of why these allocations were chosen based on historical spending."
+      }
+      The allocations sum must be approximately ₹${totalLimit}. Only include categories from the allowed categories list.
     `;
 
     const response = await model.generateContent({
@@ -528,7 +542,26 @@ export async function allocateBudgetWithAi({ totalLimit, categoryPercentages, ca
 
     const responseTextObj = response.response;
     const resultText = typeof responseTextObj.text === 'function' ? responseTextObj.text() : responseTextObj.text;
-    return JSON.parse(resultText);
+    let data = JSON.parse(resultText);
+
+    if (!data || typeof data !== 'object') {
+      throw new Error("Invalid budget allocator response parsed");
+    }
+
+    if (!data.allocations) {
+      // Defensive fallback: check if it returned a flat key-value category map directly
+      const hasFlatCategories = Object.keys(data).some(k => categoriesList.includes(k));
+      if (hasFlatCategories) {
+        data = {
+          allocations: data,
+          rationale: "AI allocated category budgets matching historical shares."
+        };
+      } else {
+        throw new Error("Missing 'allocations' object in AI response schema");
+      }
+    }
+
+    return data;
   } catch (error) {
     console.warn("Gemini allocateBudgetWithAi failed, running local allocation split:", error.message);
     const count = categoriesList.length;
@@ -537,7 +570,7 @@ export async function allocateBudgetWithAi({ totalLimit, categoryPercentages, ca
     categoriesList.forEach(c => allocations[c] = limitPerCat);
     return {
       allocations,
-      rationale: "Encountered Gemini quota limits. Equal split (with a 10% safety buffer) has been configured across all categories."
+      rationale: "Encountered Gemini quota limits or response parsing issue. Equal split (with a 10% safety buffer) has been configured across all categories."
     };
   }
 }

@@ -1,174 +1,223 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Sparkles, ArrowRight, User, Briefcase, Shield, Cpu, Zap } from 'lucide-react';
+import React from "react";
+import {
+  FileText,
+  List,
+  Target,
+  Repeat,
+  TrendingUp,
+  Zap,
+  Check,
+  CreditCard,
+  Shield,
+  Grid
+} from "lucide-react";
+import LandingNav from "../components/LandingNav";
+import FeatureCard from "../components/FeatureCard";
+import Home from "../components/Home";
+import Footer from "../components/Footer";
 
 const LandingPage = () => {
-  const navigate = useNavigate();
+  // Stats Data
+  const stats = [
+    { value: "10M+", label: "Transactions Processed", icon: CreditCard },
+    { value: "95.6%", label: "AI Accuracy", icon: Shield },
+    { value: "50+", label: "Expense Categories", icon: Grid },
+    { value: "25K+", label: "Financial Insights", icon: TrendingUp },
+  ];
+
+  // Features Data
+  const features = [
+    { icon: FileText, title: "AI Transaction Extraction", desc: "Automatically extract transactions from bank statements and invoices with high accuracy." },
+    { icon: List, title: "Smart Categorization", desc: "AI-powered categorization of income and expenses into smart custom categories." },
+    { icon: Target, title: "Invoice OCR Analysis", desc: "Extract important details like amount, GST, merchant, date, and items from invoices." },
+    { icon: Repeat, title: "Recurring Payment Detection", desc: "Identify and track recurring payments like subscriptions, EMIs, and utilities automatically." },
+    { icon: TrendingUp, title: "Financial Insights", desc: "Get deep insights into your spending patterns, income sources, and savings opportunities." },
+    { icon: Zap, title: "AI Recommendations", desc: "Receive personalized AI-powered recommendations to improve your financial health." },
+  ];
+
+  // How It Works Steps
+  const steps = [
+    { stepNum: "Step 1", title: "Upload Document", desc: "Upload your bank statement, invoice, or receipt in PDF, CSV, or image format." },
+    { stepNum: "Step 2", title: "AI Processing", desc: "Our AI extracts and processes all the financial data instantly." },
+    { stepNum: "Step 3", title: "Smart Categorization", desc: "Transactions are automatically categorized into relevant categories." },
+    { stepNum: "Step 4", title: "Generate Insights", desc: "Get detailed insights, analytics, and AI-powered recommendations." },
+  ];
+
+  // Testimonials
+  const testimonials = [
+    { name: "Priya Sharma", role: "Marketing Manager", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&h=100&q=80", text: "Fince has completely transformed how I manage my finances. The AI insights are incredibly accurate and helpful." },
+    { name: "Rohit Verma", role: "Freelance Designer", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&h=100&q=80", text: "The invoice analysis feature saves me so much time. Perfect tool for freelancers and businesses." },
+    { name: "Ankit Patel", role: "Business Owner", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&h=100&q=80", text: "Finally, a tool that understands my spending habits and gives actionable recommendations." }
+  ];
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col justify-between overflow-x-hidden relative font-inter">
-      {/* Background glowing blobs */}
-      <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-primary/10 blur-[150px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-sky-500/10 blur-[150px] pointer-events-none" />
+    <div className="relative min-h-screen bg-[#FDFDFD] text-slate-900 overflow-hidden font-sans">
       
-      {/* Header */}
-      <header className="max-w-7xl mx-auto w-full px-6 py-6 flex items-center justify-between z-10">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-primary to-secondary flex items-center justify-center pulse-ring shadow-glow-primary">
-            <Sparkles className="w-5 h-5 text-slate-900" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent font-outfit">
-              FINCE
-            </h1>
-            <p className="text-[10px] text-slate-400 uppercase tracking-widest -mt-1 font-mono">Financial Intel</p>
-          </div>
-        </div>
-        <div className="text-xs text-slate-400 font-mono bg-slate-800/80 border border-slate-700/50 px-3.5 py-1.5 rounded-full flex items-center gap-2 shadow-sm">
-          <Shield className="w-3.5 h-3.5 text-primary" />
-          <span>GATEWAY_PORTAL // SECURE_SSL</span>
-        </div>
-      </header>
+      {/* Background Grid Overlay */}
+      <div className="absolute inset-0 grid-overlay opacity-30 pointer-events-none z-0" />
 
-      {/* Main Container */}
-      <main className="max-w-6xl mx-auto w-full px-6 py-12 flex-1 flex flex-col justify-center items-center gap-12 z-10">
+      {/* Decorative Glow Blobs */}
+      <div className="absolute top-[-10%] left-[-10%] h-[500px] w-[500px] rounded-full bg-blue-400/5 blur-[100px] pointer-events-none" />
+      <div className="absolute top-[40%] right-[-10%] h-[600px] w-[600px] rounded-full bg-violet-400/5 blur-[120px] pointer-events-none" />
+
+      <LandingNav />
+
+      <main className="relative mx-auto flex max-w-7xl flex-col gap-24 px-6 pb-24 pt-28 sm:px-8 z-10">
         
-        {/* Tagline section */}
-        <div className="text-center space-y-4 max-w-2xl animate-fade-in">
-          <span className="px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase bg-primary/15 border border-primary/25 text-primary">
-            Next-Gen AI Financial Operating System
-          </span>
-          <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white font-outfit leading-none pt-2">
-            Choose Your <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Financial Workspace</span>
-          </h2>
-          <p className="text-slate-400 text-sm leading-relaxed max-w-xl mx-auto font-medium">
-            Access customized accounting frameworks, Gemini AI intelligence audits, and smart analytics designed specifically for either household operations or business ledgering.
-          </p>
-        </div>
+        {/* SECTION 1: HERO SECTION */}
+        <Home activeLayout={1} />
 
-        {/* Portal Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-5xl animate-slide-up">
-          
-          {/* Personal Workspace Card */}
-          <div className="bg-slate-950/40 backdrop-blur-glass border border-slate-800 rounded-3xl p-8 flex flex-col justify-between hover:border-primary/45 transition-all duration-500 hover:shadow-[0_12px_40px_rgba(230,45,169,0.08)] group relative overflow-hidden">
-            {/* Glow accent */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl pointer-events-none group-hover:bg-primary/20 transition-all duration-500" />
-            
-            <div className="space-y-6">
-              <div className="flex justify-between items-start">
-                <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-500 shadow-inner">
-                  <User className="w-6 h-6" />
+        {/* SECTION 2: STATS SECTION */}
+        <section className="relative z-10">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {stats.map((stat, idx) => (
+              <div key={idx} className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_2px_8px_rgba(0,0,0,0.01)]">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-650 border border-blue-100/50">
+                  <stat.icon className="h-5.5 w-5.5 text-blue-650" />
                 </div>
-                <span className="text-[10px] font-bold font-mono tracking-widest text-primary uppercase bg-primary/5 px-2.5 py-1 rounded-md border border-primary/10">
-                  PERSONAL SPACE
-                </span>
+                <div className="space-y-0.5 leading-none">
+                  <p className="text-xl md:text-2xl font-extrabold text-slate-900">{stat.value}</p>
+                  <p className="text-[11px] md:text-xs font-semibold text-slate-450 uppercase tracking-wide">{stat.label}</p>
+                </div>
               </div>
+            ))}
+          </div>
+        </section>
 
-              <div className="space-y-2">
-                <h3 className="text-2xl font-bold font-outfit text-white">Household & Individual OS</h3>
-                <p className="text-slate-400 text-xs leading-relaxed font-medium">
-                  Perfect for managing personal spend limits, linking family expense sharing codes, tracking SaaS renewals, and auditing saving strategies.
-                </p>
+        {/* SECTION 3: FEATURES SECTION */}
+        <section id="features" className="space-y-12 relative">
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-blue-650 bg-blue-50 px-3 py-1 rounded-full">Features</span>
+            <h2 className="text-3xl font-extrabold text-slate-900 sm:text-4xl tracking-tight leading-none">Powerful Features for Smart Financial Management</h2>
+          </div>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {features.map((f, idx) => (
+              <FeatureCard key={idx} icon={f.icon} title={f.title} description={f.desc} />
+            ))}
+          </div>
+        </section>
+
+        {/* SECTION 4: HOW IT WORKS */}
+        <section id="solutions" className="grid gap-12 lg:grid-cols-[1fr_2.2fr] items-center">
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-blue-650 bg-blue-50 px-3 py-1 rounded-full inline-block">How It Works</span>
+              <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight leading-none">Simple. Smart. Secure.</h2>
+            </div>
+            <p className="text-sm md:text-base text-slate-500 font-medium leading-relaxed">
+              Our AI-powered process makes financial analysis effortless in just 4 simple steps.
+            </p>
+            <a href="/register" className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-violet-650 px-6 py-3 text-xs font-semibold text-white shadow-sm hover:from-blue-700 hover:to-violet-750 transition duration-150">
+              Get Started Now
+            </a>
+          </div>
+
+          <div className="relative flex flex-col md:flex-row justify-between gap-6">
+            <div className="absolute top-[26px] left-[24px] right-[24px] h-[1.5px] border-t border-dashed border-blue-200 hidden md:block z-0" />
+            {steps.map((step, idx) => (
+              <div key={idx} className="flex-1 flex flex-col items-center md:items-start text-center md:text-left z-10 bg-[#FDFDFD] md:pr-4">
+                <div className="w-12 h-12 rounded-full border-2 border-blue-600 bg-white text-blue-600 flex items-center justify-center mb-4 shrink-0 shadow-sm font-bold text-sm">
+                  {idx + 1}
+                </div>
+                <span className="text-[10px] font-bold text-blue-650 uppercase tracking-widest leading-none">{step.stepNum}</span>
+                <h3 className="text-sm md:text-base font-bold text-slate-900 mt-1">{step.title}</h3>
+                <p className="text-xs text-slate-450 leading-relaxed font-semibold mt-1 max-w-[200px]">{step.desc}</p>
               </div>
+            ))}
+          </div>
+        </section>
 
-              <div className="border-t border-slate-800/80 pt-5 space-y-3.5">
-                <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Included Capabilities</h4>
-                <ul className="space-y-2.5 text-xs text-slate-300 font-medium">
-                  <li className="flex items-center gap-2.5">
-                    <span className="text-primary font-bold">🌸</span>
-                    <span>Intelligent Family Budget Allotment</span>
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <span className="text-primary font-bold">📊</span>
-                    <span>Dynamic Wellness Score Progression Ring</span>
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <span className="text-primary font-bold">💸</span>
-                    <span>Active Subscriptions & Renewal Tracker</span>
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <span className="text-primary font-bold">🤖</span>
-                    <span>Generative AI Household Savings Advisory</span>
-                  </li>
-                </ul>
+        {/* SECTION 5: DASHBOARD PREVIEW SECTION */}
+        <section id="outputs" className="grid gap-12 lg:grid-cols-[1.2fr_0.8fr] items-center">
+          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-xl grid grid-cols-1 md:grid-cols-[1.3fr_0.9fr] gap-6 relative">
+            <div className="space-y-6">
+              <div className="border border-slate-100 rounded-xl p-4 shadow-sm bg-slate-50/50">
+                <span className="text-[10px] font-bold text-slate-400 block mb-0.5">Expenses Overview</span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-xl font-extrabold text-slate-900">₹78,500</span>
+                  <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-0.5">▼ -8.2%</span>
+                </div>
               </div>
             </div>
 
-            <button
-              onClick={() => navigate('/personal')}
-              className="mt-8 w-full py-4 rounded-2xl bg-gradient-to-r from-primary to-secondary text-slate-900 font-extrabold text-xs tracking-wider uppercase shadow-glow-primary hover:shadow-lg hover:brightness-105 active:scale-95 transition-all flex items-center justify-center gap-2"
-            >
-              <span>Enter Personal Space</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Business Workspace Card */}
-          <div className="bg-slate-950/40 backdrop-blur-glass border border-slate-800 rounded-3xl p-8 flex flex-col justify-between hover:border-sky-500/45 transition-all duration-500 hover:shadow-[0_12px_40px_rgba(14,165,233,0.08)] group relative overflow-hidden">
-            {/* Glow accent */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-sky-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-sky-500/20 transition-all duration-500" />
-            
-            <div className="space-y-6">
-              <div className="flex justify-between items-start">
-                <div className="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 group-hover:scale-110 transition-transform duration-500 shadow-inner">
-                  <Briefcase className="w-6 h-6" />
-                </div>
-                <span className="text-[10px] font-bold font-mono tracking-widest text-sky-400 uppercase bg-sky-500/5 px-2.5 py-1 rounded-md border border-sky-500/10">
-                  BUSINESS PORTAL
-                </span>
-              </div>
-
-              <div className="space-y-2">
-                <h3 className="text-2xl font-bold font-outfit text-white">Corporate Ledger & Accounts</h3>
-                <p className="text-slate-400 text-xs leading-relaxed font-medium">
-                  Tailored for startups, micro-SMEs, and independent contractors to automate corporate receipts, run background audit controls, and track taxes.
-                </p>
-              </div>
-
-              <div className="border-t border-slate-800/80 pt-5 space-y-3.5">
-                <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Included Capabilities</h4>
-                <ul className="space-y-2.5 text-xs text-slate-300 font-medium">
-                  <li className="flex items-center gap-2.5">
-                    <span className="text-sky-400">⚡</span>
-                    <span>Multimodal Gemini 2.5 Flash Invoice OCR</span>
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <span className="text-sky-400">🔍</span>
-                    <span>Background Duplicate Invoice Scan Control</span>
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <span className="text-sky-400">⚠️</span>
-                    <span>Statistical Spending Spike Anomaly Detection</span>
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <span className="text-sky-400">📈</span>
-                    <span>Corporate GST & Input Tax Growth Trackers</span>
-                  </li>
-                </ul>
+            <div className="border border-slate-100 rounded-xl p-4 shadow-sm bg-white flex flex-col justify-between">
+              <span className="text-[10px] font-bold text-slate-700 block mb-4">Top Categories</span>
+              <div className="space-y-3.5 flex-1 flex flex-col justify-center">
+                {[{ name: "Shopping", pct: 40 }, { name: "Food & Dining", pct: 30 }].map((cat, idx) => (
+                  <div key={idx} className="space-y-1">
+                    <div className="flex justify-between text-[9px] font-bold text-slate-500">
+                      <span>{cat.name}</span>
+                      <span>{cat.pct}%</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-blue-500 to-violet-500 rounded-full" style={{ width: `${cat.pct}%` }} />
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-
-            <button
-              onClick={() => navigate('/business')}
-              className="mt-8 w-full py-4 rounded-2xl bg-gradient-to-r from-sky-500 to-emerald-400 text-slate-900 font-extrabold text-xs tracking-wider uppercase shadow-[0_4px_14px_0_rgba(14,165,233,0.2)] hover:shadow-lg hover:brightness-105 active:scale-95 transition-all flex items-center justify-center gap-2"
-            >
-              <span>Enter Business Portal</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
           </div>
 
-        </div>
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-blue-650 bg-blue-50 px-3 py-1 rounded-full inline-block">Dashboard Preview</span>
+              <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight leading-none">Everything You Need in One Beautiful Dashboard</h2>
+            </div>
+            <ul className="space-y-3 text-sm font-semibold text-slate-600">
+              {["Income vs Expense Overview", "Category-wise Spending Breakdown", "AI Financial Summary"].map((item, idx) => (
+                <li key={idx} className="flex items-center gap-3">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-50 text-blue-600 border border-blue-100/50 shrink-0">
+                    <Check className="h-3 w-3 text-blue-600" />
+                  </span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        {/* SECTION 6: TESTIMONIALS SECTION */}
+        <section id="testimonials" className="space-y-12 relative">
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-blue-650 bg-blue-50 px-3 py-1 rounded-full">Trusted by Users</span>
+            <h2 className="text-3xl font-extrabold text-slate-900 sm:text-4xl tracking-tight leading-none">Loved by Thousands of Users</h2>
+          </div>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {testimonials.map((t, idx) => (
+              <div key={idx} className="relative rounded-2xl border border-slate-100 bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.01)] flex flex-col justify-between">
+                <div className="text-blue-200 text-3xl font-serif leading-none mb-3">“</div>
+                <p className="text-xs md:text-sm text-slate-500 leading-relaxed font-semibold mb-6 italic">{t.text}</p>
+                <div className="flex items-center gap-3 pt-3 border-t border-slate-55">
+                  <img src={t.avatar} alt={t.name} className="h-9 w-9 rounded-full object-cover shrink-0" />
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-900 leading-none mb-0.5">{t.name}</h4>
+                    <p className="text-[10px] font-semibold text-slate-450">{t.role}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* SECTION 7: BOTTOM CTA */}
+        <section id="contact" className="relative rounded-2xl bg-gradient-to-r from-blue-500/10 via-indigo-500/5 to-violet-500/10 border border-blue-100 p-8 sm:p-12 overflow-hidden">
+          <div className="grid gap-8 md:grid-cols-[1.2fr_0.8fr] items-center relative z-10">
+            <div className="space-y-6">
+              <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight sm:text-4xl leading-tight">Transform Financial Data into <br />Smart Insights</h2>
+              <p className="text-slate-500 leading-relaxed font-medium text-sm md:text-base max-w-lg">Join thousands of users who trust our AI-powered platform for better financial decisions.</p>
+              <div className="flex flex-col gap-4 sm:flex-row pt-2">
+                <a href="/login" className="inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-violet-650 px-6 py-3 text-xs font-semibold text-white shadow-sm hover:from-blue-700 hover:to-violet-750 transition duration-150">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
+                  <span>Upload Statement</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
 
       </main>
 
-      {/* Footer */}
-      <footer className="max-w-7xl mx-auto w-full px-6 py-6 border-t border-slate-800/50 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 z-10">
-        <div>© 2026 FINCE Inc. Built with Gemini Multimodal AI & OCR systems.</div>
-        <div className="flex gap-6 font-medium">
-          <a href="#" className="hover:text-slate-300 transition-colors">Privacy Agreement</a>
-          <a href="#" className="hover:text-slate-300 transition-colors">Terms of Enterprise</a>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };

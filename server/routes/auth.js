@@ -12,24 +12,31 @@ const generateFamilyCode = () => {
 
 // Register
 router.post('/register', async (req, res) => {
-  const { username, email, password, role } = req.body;
+  const { username, email, password, role, fullName, phone, userMode } = req.body;
   try {
-    if (!username || !email || !password) {
-      return res.status(400).json({ message: 'All fields are required' });
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
     }
 
-    const userExists = await User.findOne({ $or: [{ email }, { username }] });
+    // Map new userMode (individual/corporate) to existing role enum (personal/business)
+    const finalRole = role || (userMode === 'corporate' ? 'business' : 'personal');
+    // If username is not passed, use fullName or email prefix
+    const finalUsername = username || fullName || email.split('@')[0];
+
+    const userExists = await User.findOne({ $or: [{ email }, { username: finalUsername }] });
     if (userExists) {
       return res.status(400).json({ message: 'Username or email already exists' });
     }
 
     const familyCode = generateFamilyCode();
     const newUser = new User({
-      username,
+      username: finalUsername,
       email,
       password,
       familyCode,
-      role: role || 'personal'
+      role: finalRole,
+      fullName,
+      phone
     });
 
     await newUser.save();
@@ -48,7 +55,9 @@ router.post('/register', async (req, res) => {
         username: newUser.username,
         email: newUser.email,
         familyCode: newUser.familyCode,
-        role: newUser.role
+        role: newUser.role,
+        fullName: newUser.fullName,
+        phone: newUser.phone
       }
     });
   } catch (error) {
@@ -166,6 +175,58 @@ router.post('/family/leave', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Update profile details
+router.put('/update', authenticateToken, async (req, res) => {
+  const { fullName, phone, email, username, password } = req.body;
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (email && email !== user.email) {
+      const emailExists = await User.findOne({ email: email.toLowerCase() });
+      if (emailExists) {
+        return res.status(400).json({ message: 'Email is already registered' });
+      }
+      user.email = email.toLowerCase();
+    }
+
+    if (username && username !== user.username) {
+      const usernameExists = await User.findOne({ username });
+      if (usernameExists) {
+        return res.status(400).json({ message: 'Username is already taken' });
+      }
+      user.username = username;
+    }
+
+    if (fullName !== undefined) user.fullName = fullName;
+    if (phone !== undefined) user.phone = phone;
+
+    if (password) {
+      user.password = password; // pre-save hook handles hashing automatically
+    }
+
+    await user.save();
+    
+    res.json({
+      message: 'Profile updated successfully',
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        fullName: user.fullName,
+        phone: user.phone,
+        familyCode: user.familyCode,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error updating profile' });
   }
 });
 
