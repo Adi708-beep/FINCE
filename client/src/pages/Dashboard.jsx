@@ -73,44 +73,52 @@ const Dashboard = () => {
   const renderMarkdown = (text) => {
     if (!text) return null;
     return text.split('\n').map((line, idx) => {
-      let content = line;
+      let isBullet = false;
+      let cleanLine = line;
+      if (line.trim().startsWith('- ') || line.trim().startsWith('* ')) {
+        isBullet = true;
+        cleanLine = line.trim().replace(/^[-*]\s+/, '');
+      }
+
+      // Parse bold tags in cleanLine
       const boldRegex = /\*\*(.*?)\*\*/g;
       const parts = [];
       let lastIndex = 0;
       let match;
-      while ((match = boldRegex.exec(line)) !== null) {
+      while ((match = boldRegex.exec(cleanLine)) !== null) {
         if (match.index > lastIndex) {
-          parts.push(line.substring(lastIndex, match.index));
+          parts.push(cleanLine.substring(lastIndex, match.index));
         }
         parts.push(<strong key={match.index} className="font-bold text-slate-900">{match[1]}</strong>);
         lastIndex = boldRegex.lastIndex;
       }
-      if (lastIndex < line.length) {
-        parts.push(line.substring(lastIndex));
+      if (lastIndex < cleanLine.length) {
+        parts.push(cleanLine.substring(lastIndex));
       }
 
-      if (line.trim().startsWith('-') || line.trim().startsWith('*')) {
-        const cleanContent = line.replace(/^[-*]\s+/, '');
+      const content = parts.length > 0 ? parts : cleanLine;
+
+      if (isBullet) {
         return (
           <li key={idx} className="ml-4 list-disc pl-1 mb-1 text-slate-600 font-medium">
-            {boldRegex.test(line) ? parts : cleanContent}
+            {content}
           </li>
         );
       }
       
-      if (line.startsWith('###')) {
-        return <h5 key={idx} className="text-xs font-bold text-slate-800 mt-3 mb-1">{line.replace(/^###\s+/, '')}</h5>;
+      if (cleanLine.startsWith('###')) {
+        return <h5 key={idx} className="text-xs font-bold text-slate-800 mt-3 mb-1">{cleanLine.replace(/^###\s+/, '')}</h5>;
       }
-      if (line.startsWith('##')) {
-        return <h4 key={idx} className="text-sm font-bold text-slate-900 mt-4 mb-1.5">{line.replace(/^##\s+/, '')}</h4>;
+      if (cleanLine.startsWith('##')) {
+        return <h4 key={idx} className="text-sm font-bold text-slate-900 mt-4 mb-1.5">{cleanLine.replace(/^##\s+/, '')}</h4>;
       }
-      if (line.startsWith('#')) {
-        return <h3 key={idx} className="text-base font-bold text-slate-950 mt-5 mb-2">{line.replace(/^#\s+/, '')}</h3>;
+      if (cleanLine.startsWith('#')) {
+        return <h3 key={idx} className="text-base font-bold text-slate-950 mt-5 mb-2">{cleanLine.replace(/^#\s+/, '')}</h3>;
       }
 
-      if (line.trim() === '') return <div key={idx} className="h-1.5" />;
+      if (cleanLine.trim() === '') return <div key={idx} className="h-1.5" />;
 
-      return <p key={idx} className="mb-1 text-slate-600 font-medium">{parts.length > 0 ? parts : content}</p>;
+      return <p key={idx} className="mb-1 text-slate-600 font-medium">{content}</p>;
     });
   };
 
