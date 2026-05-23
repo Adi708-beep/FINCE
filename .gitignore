@@ -1,0 +1,22 @@
+# Node dependency directories
+node_modules/
+**/node_modules/
+
+# Production build artifacts
+dist/
+**/dist/
+
+# Local configuration files
+.env
+**/.env
+.env.local
+.env.*.local
+
+# Server upload directories
+server/uploads/*
+!server/uploads/.gitkeep
+
+# System and logs
+*.log
+.DS_Store
+Thumbs.db
