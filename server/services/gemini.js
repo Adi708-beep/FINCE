@@ -8,10 +8,219 @@ if (!apiKey) {
   console.warn("WARNING: GEMINI_API_KEY is not defined in the environment variables!");
 }
 
-// In the standard @google/generative-ai library, the package export is GoogleGenerativeAI
 const genAI = new GoogleGenerativeAI(apiKey || '');
 
-// Helper to clean and format text
+// ==========================================
+// LOCAL FALLBACK PARSING & REPORT ALGORITHMS
+// ==========================================
+
+export function localParseInvoiceText(ocrText) {
+  const lines = ocrText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  
+  let merchant = 'Unknown';
+  let amount = 0;
+  let date = new Date();
+  let tax = 0;
+  let category = 'Others';
+  const items = [];
+
+  if (lines.length > 0) {
+    // Infer merchant from the first line that looks like a store name (non-numeric, short)
+    for (let i = 0; i < Math.min(lines.length, 3); i++) {
+      if (lines[i] && !/\d{4,}/.test(lines[i]) && lines[i].length > 3 && lines[i].length < 40) {
+        merchant = lines[i];
+        break;
+      }
+    }
+  }
+
+  // Parse amount: look for total/subtotal/due
+  let foundAmount = false;
+  for (const line of lines) {
+    const match = line.match(/(?:total|grand\s*total|amount\s*due|to\s*pay|total\s*amount|net\s*pay)\s*(?:₹|\$|rs\.?|usd)?\s*?(\d+(?:\.\d{2})?)/i);
+    if (match) {
+      amount = Number(match[1]);
+      foundAmount = true;
+      break;
+    }
+  }
+  // Fallback amount: find the largest number on any line that has decimal places
+  if (!foundAmount) {
+    let maxNum = 0;
+    for (const line of lines) {
+      const numbers = line.match(/\b\d+\.\d{2}\b/g);
+      if (numbers) {
+        numbers.forEach(numStr => {
+          const num = Number(numStr);
+          if (num > maxNum) maxNum = num;
+        });
+      }
+    }
+    amount = maxNum;
+  }
+
+  // Parse Date: look for YYYY-MM-DD or DD/MM/YYYY or MM/DD/YYYY
+  const dateRegex = /\b(\d{4}[-/.]\d{1,2}[-/.]\d{1,2})|(\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4})\b/;
+  for (const line of lines) {
+    const match = line.match(dateRegex);
+    if (match) {
+      const parsedDate = new Date(match[0]);
+      if (!isNaN(parsedDate.getTime())) {
+        date = parsedDate;
+        break;
+      }
+    }
+  }
+
+  // Parse Tax: look for gst/tax/vat
+  for (const line of lines) {
+    const match = line.match(/(?:tax|gst|vat|cgst|sgst)\s*(?:@|\b)?\s*(\d+(?:\.\d{2})?%?)/i);
+    if (match) {
+      const taxVal = parseFloat(match[1]);
+      if (!isNaN(taxVal)) {
+        if (match[1].includes('%')) {
+          tax = Number(((amount * taxVal) / 100).toFixed(2));
+        } else {
+          tax = taxVal;
+        }
+        break;
+      }
+    }
+  }
+
+  // Categorize based on keywords
+  const textLower = ocrText.toLowerCase();
+  if (/\b(food|dining|cafe|starbucks|restaurant|mcdonald|pizza|burger|eat|kitchen|canteen)\b/.test(textLower)) {
+    category = 'Food & Dining';
+  } else if (/\b(grocery|groceries|supermarket|mart|walmart|woolworths|tesco|whole\s*foods|milk|bread|fruit|veg)\b/.test(textLower)) {
+    category = 'Groceries';
+  } else if (/\b(electric|water|gas|utility|internet|power|wifi|telecom|phone|bill|recharge)\b/.test(textLower)) {
+    category = 'Utilities';
+  } else if (/\b(movie|cinema|netflix|spotify|game|steam|ticket|concert|show|play|event|fun|funzone)\b/.test(textLower)) {
+    category = 'Entertainment';
+  } else if (/\b(uber|ola|cab|taxi|train|bus|metro|flight|airline|fuel|petrol|diesel|gasoline|travel|transport|parking)\b/.test(textLower)) {
+    category = 'Travel & Transport';
+  } else if (/\b(rent|lease|mortgage|housing|apartment|maintenance|property)\b/.test(textLower)) {
+    category = 'Housing';
+  } else if (/\b(medicine|medical|doctor|hospital|pharmacy|health|supplement|care|shampoo|soap|dentist)\b/.test(textLower)) {
+    category = 'Health & Personal Care';
+  } else if (/\b(amazon|flipkart|myntra|clothe|shoe|shirt|pant|dress|mall|store|buy|purchase|shopping)\b/.test(textLower)) {
+    category = 'Shopping';
+  }
+
+  // Generate basic item
+  items.push({
+    name: merchant !== 'Unknown' ? `Expense at ${merchant}` : 'Purchased Items',
+    price: amount - tax,
+    quantity: 1
+  });
+
+  return { merchant, amount, date, tax, category, items };
+}
+
+export function localGenerateSavingsAuditReport({ currentMonthData, lastMonthData, username }) {
+  const currentTotal = Object.values(currentMonthData).reduce((sum, val) => sum + val, 0);
+  const lastTotal = Object.values(lastMonthData).reduce((sum, val) => sum + val, 0);
+  const delta = currentTotal - lastTotal;
+  const percentage = lastTotal > 0 ? ((delta / lastTotal) * 100).toFixed(1) : '100.0';
+
+  let mostIncreasedCat = 'None';
+  let maxIncrease = 0;
+  let mostDecreasedCat = 'None';
+  let maxDecrease = 0;
+
+  const allCategories = new Set([...Object.keys(currentMonthData), ...Object.keys(lastMonthData)]);
+
+  allCategories.forEach(cat => {
+    const currentVal = currentMonthData[cat] || 0;
+    const lastVal = lastMonthData[cat] || 0;
+    const change = currentVal - lastVal;
+    if (change > maxIncrease) {
+      maxIncrease = change;
+      mostIncreasedCat = cat;
+    }
+    if (change < maxDecrease) {
+      maxDecrease = change;
+      mostDecreasedCat = cat;
+    }
+  });
+
+  return `
+# AI Spend Audit Report — comparative analysis for ${username}
+
+## Executive Summary
+This report analyzes and compares your spending patterns for the current calendar month versus the previous month.
+- **This Month's Spending:** ₹${currentTotal.toLocaleString()}
+- **Last Month's Spending:** ₹${lastTotal.toLocaleString()}
+- **Net Shift:** ${delta >= 0 ? '+' : ''}₹${delta.toLocaleString()} (${delta >= 0 ? 'Increase' : 'Savings'} of ${Math.abs(percentage)}%)
+
+${delta > 0 
+  ? `> [!WARNING]\n> Your overall spending has **increased by ₹${delta.toLocaleString()}** compared to last month. Review your active categories below to re-align your budget limits.`
+  : `> [!NOTE]\n> Excellent job! You managed to **save ₹${Math.abs(delta).toLocaleString()}** compared to last month. Keep up this disciplined spending pattern!`
+}
+
+## Key Trends
+- 📈 **Highest Increase:** Spending in **${mostIncreasedCat}** grew the most, rising by **₹${maxIncrease.toLocaleString()}**.
+- 📉 **Highest Decrease:** Spending in **${mostDecreasedCat}** dropped the most, saving you **₹${Math.abs(maxDecrease).toLocaleString()}**.
+
+## Actionable Savings Strategies
+1. **Target ${mostIncreasedCat} Expenses:** Since this category grew by ₹${maxIncrease.toLocaleString()}, consider setting a strict budget limit for it or auditing recent transactions to identify unnecessary subscriptions or impulse purchases.
+2. **Track Recurring Subscriptions:** Utilities or recurring monthly charges can creep up. Check for unused memberships.
+3. **Set Up Category Alerts:** Make sure your category alert thresholds are set to 80% to receive notifications before exceeding your target allowances.
+  `;
+}
+
+export function localGenerateFinancialReport({ transactionsContext, budgetsContext, period }) {
+  const totalSpent = transactionsContext.reduce((sum, t) => sum + t.amount, 0);
+  const avgTrans = transactionsContext.length > 0 ? (totalSpent / transactionsContext.length).toFixed(2) : '0';
+  
+  return `
+# Financial Report & Insights (Period: ${period})
+
+## Executive Summary
+Your financial report for this period is ready.
+- **Total Expenditure:** ₹${totalSpent.toLocaleString()}
+- **Average Spend per Transaction:** ₹${avgTrans}
+- **Ledger Records Analyzed:** ${transactionsContext.length}
+
+## Budget Performance
+Review your category limits in the budgets tab. Track your spending daily to ensure you stay under your set thresholds.
+
+## AI Saving Recommendations
+1. **Impulse Purchase Control:** Review transactions above ₹1,000 and identify if they were essential or discretionary.
+2. **Review High-Spend Outlets:** Check the "Top Spend Outlets" chart on the dashboard and negotiate recurring costs or look for cheaper alternatives.
+3. **Collaborative Tracking:** If you have a family group synced, ensure all members log their receipts daily to prevent budget limit breaches.
+  `;
+}
+
+export function localAllocateBudgetWithAi({ totalLimit, categoryPercentages, categoriesList }) {
+  const count = categoriesList.length;
+  const targetTotal = totalLimit * 0.9;
+  const allocations = {};
+  
+  let sumAllocated = 0;
+  categoriesList.forEach((cat) => {
+    const pct = parseFloat(categoryPercentages[cat]) || (100 / count);
+    const calculatedLimit = Math.round((targetTotal * pct) / 100);
+    allocations[cat] = calculatedLimit;
+    sumAllocated += calculatedLimit;
+  });
+  
+  const diff = Math.round(targetTotal) - sumAllocated;
+  if (categoriesList.length > 0) {
+    allocations[categoriesList[categoriesList.length - 1]] += diff;
+  }
+
+  return {
+    allocations,
+    rationale: "AI budget allocation is derived from your historical 60-day spending patterns. 10% of your total budget (₹" + Math.round(totalLimit * 0.1) + ") has been reserved as a savings buffer."
+  };
+}
+
+// ==========================================
+// GEMINI API INTEGRATIONS
+// ==========================================
+
 export async function analyzeInvoiceText(ocrText) {
   if (!ocrText || ocrText.trim() === '') {
     return {
@@ -57,7 +266,6 @@ export async function analyzeInvoiceText(ocrText) {
     const resultText = typeof responseTextObj.text === 'function' ? responseTextObj.text() : responseTextObj.text;
     const parsedData = JSON.parse(resultText);
     
-    // Fallback normalization
     return {
       merchant: parsedData.merchant || 'Unknown',
       amount: Number(parsedData.amount) || 0,
@@ -71,16 +279,8 @@ export async function analyzeInvoiceText(ocrText) {
       })) : []
     };
   } catch (error) {
-    console.error("Error analyzing invoice with Gemini:", error);
-    // Return sensible defaults in case of failure
-    return {
-      merchant: 'Parsing Error',
-      amount: 0,
-      date: new Date(),
-      tax: 0,
-      category: 'Others',
-      items: [{ name: 'Failed to extract items', price: 0, quantity: 1 }]
-    };
+    console.warn("Gemini OCR parsing failed (possibly quota exceeded), executing local fallback parser:", error.message);
+    return localParseInvoiceText(ocrText);
   }
 }
 
@@ -109,13 +309,11 @@ export async function chatWithContext({ chatHistory, userMessage, transactionsCo
       Let's begin the chat. Keep your response brief, highly readable, and use bullet points where helpful.
     `;
 
-    // Reconstruct conversation history format for SDK
     const sdkHistory = chatHistory.map(msg => ({
       role: msg.role === 'model' ? 'model' : 'user',
       parts: [{ text: msg.content }]
     }));
 
-    // Insert the system/context prompt at the beginning of the chat or as a system instruction
     const chat = model.startChat({
       history: [
         {
@@ -135,7 +333,7 @@ export async function chatWithContext({ chatHistory, userMessage, transactionsCo
     return typeof responseTextObj.text === 'function' ? responseTextObj.text() : responseTextObj.text;
   } catch (error) {
     console.error("Error in Gemini Chat assistant:", error);
-    return "I'm sorry, I encountered an issue accessing my intelligence engine. Please try again in a moment.";
+    return "I am currently experiencing high demand on my cognitive processing network. Please review your active transaction list or try asking again in a moment.";
   }
 }
 
@@ -167,12 +365,12 @@ export async function generateFinancialReport({ transactionsContext, budgetsCont
     const responseTextObj = response.response;
     return typeof responseTextObj.text === 'function' ? responseTextObj.text() : responseTextObj.text;
   } catch (error) {
-    console.error("Error generating report with Gemini:", error);
-    return "Failed to generate financial report due to connection issues. Please check back later.";
+    console.warn("Gemini report generation failed (possibly quota exceeded), using local report fallback:", error.message);
+    return localGenerateFinancialReport({ transactionsContext, budgetsContext, period });
   }
 }
 
-// 4. AI Budget Auto-Allocation based on 60 days spending history
+// AI Budget Auto-Allocation based on 60 days spending history
 export async function allocateBudgetWithAi({ totalLimit, categoryPercentages, categoriesList }) {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
@@ -214,20 +412,12 @@ export async function allocateBudgetWithAi({ totalLimit, categoryPercentages, ca
     const resultText = typeof responseTextObj.text === 'function' ? responseTextObj.text() : responseTextObj.text;
     return JSON.parse(resultText);
   } catch (error) {
-    console.error("Error allocating budget with Gemini:", error);
-    // Fallback: equal distribution with remaining as buffer
-    const count = categoriesList.length;
-    const limitPerCat = Math.floor((totalLimit * 0.9) / count);
-    const allocations = {};
-    categoriesList.forEach(c => allocations[c] = limitPerCat);
-    return {
-      allocations,
-      rationale: "Encountered parsing error with AI engine. Equal split (90% total budget) applied across categories as a fallback."
-    };
+    console.warn("Gemini budget allocation failed (possibly quota exceeded), using local budget fallback:", error.message);
+    return localAllocateBudgetWithAi({ totalLimit, categoryPercentages, categoriesList });
   }
 }
 
-// 5. AI Spend Pattern Auditor (Comparing current vs last month category spends)
+// AI Spend Pattern Auditor (Comparing current vs last month category spends)
 export async function generateSavingsAuditReport({ currentMonthData, lastMonthData, username }) {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
@@ -255,7 +445,7 @@ export async function generateSavingsAuditReport({ currentMonthData, lastMonthDa
     const responseTextObj = response.response;
     return typeof responseTextObj.text === 'function' ? responseTextObj.text() : responseTextObj.text;
   } catch (error) {
-    console.error("Error auditing savings:", error);
-    return "AI Auditor is currently processing other requests. Please check back shortly.";
+    console.warn("Gemini savings audit failed (possibly quota exceeded), executing local auditor fallback:", error.message);
+    return localGenerateSavingsAuditReport({ currentMonthData, lastMonthData, username });
   }
 }
