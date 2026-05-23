@@ -698,24 +698,24 @@ const Dashboard = () => {
           </div>
 
           {/* ======================== DEDICATED AI-NATIVE CORE ECOSYSTEM ======================== */}
-          <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl relative overflow-hidden space-y-8 mt-8 border-l-4 border-l-primary">
+          <div className="bg-white border border-slate-200 p-8 rounded-3xl shadow-sm relative overflow-hidden space-y-8 mt-8 border-l-4 border-l-primary">
             {/* Background elements */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -z-10 pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-accent/10 rounded-full blur-3xl -z-10 pointer-events-none" />
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl -z-10 pointer-events-none" />
 
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-5">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-5">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-primary to-accent flex items-center justify-center text-slate-950 shadow-glow-primary select-none animate-pulse">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-primary to-accent flex items-center justify-center text-white shadow-glow-primary select-none animate-pulse">
                   <Brain className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white font-outfit tracking-tight flex items-center gap-2">
-                    FINCE AI Autonomous Ecosystem <span className="px-2 py-0.5 bg-gradient-to-r from-primary to-accent text-[9px] font-black tracking-widest text-slate-950 uppercase rounded-full">Active</span>
+                  <h3 className="text-lg font-bold text-slate-900 font-outfit tracking-tight flex items-center gap-2">
+                    FINCE AI Autonomous Ecosystem <span className="px-2.5 py-0.5 bg-gradient-to-r from-primary to-accent text-[9px] font-black tracking-widest text-slate-900 uppercase rounded-full">Active</span>
                   </h3>
-                  <p className="text-xs text-slate-400">Consolidated real-time operational and cognitive financial intelligence</p>
+                  <p className="text-xs text-slate-500">Consolidated real-time operational and cognitive financial intelligence</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 bg-slate-800/55 px-3 py-1.5 rounded-xl border border-slate-700/60 font-mono text-[10px] text-slate-300">
+              <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200/60 font-mono text-[10px] text-slate-600">
                 <Activity className="w-3.5 h-3.5 text-primary animate-spin" /> Engine state: Dynamic
               </div>
             </div>
@@ -724,25 +724,25 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
               {/* Left Column: AI Narrative Story Feed */}
               <div className="lg:col-span-7 space-y-6">
-                <div className="bg-slate-800/40 border border-slate-800 p-6 rounded-2xl flex flex-col justify-between h-full relative overflow-hidden backdrop-blur-md">
+                <div className="bg-slate-50 border border-slate-200/60 p-6 rounded-2xl flex flex-col justify-between h-full relative overflow-hidden shadow-sm">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-accent/5 rounded-full blur-2xl" />
                   <div>
                     <div className="flex items-center gap-2 mb-4">
                       <FileText className="w-4 h-4 text-accent" />
-                      <h4 className="font-bold text-sm text-slate-100 font-outfit uppercase tracking-wider">AI Financial Story Feed</h4>
+                      <h4 className="font-bold text-sm text-slate-800 font-outfit uppercase tracking-wider">AI Financial Story Feed</h4>
                     </div>
-                    <div className="text-xs text-slate-300 leading-relaxed font-normal space-y-2 max-h-80 overflow-y-auto pr-1">
+                    <div className="text-xs text-slate-600 leading-relaxed font-normal space-y-2 max-h-80 overflow-y-auto pr-1">
                       {intelligence?.narrative ? (
                         renderMarkdown(intelligence.narrative)
                       ) : (
-                        <div className="py-12 text-center text-slate-500 font-medium">
+                        <div className="py-12 text-center text-slate-400 font-medium">
                           <Loader className="w-5 h-5 animate-spin text-accent mx-auto mb-2" />
                           Narrating financial logs...
                         </div>
                       )}
                     </div>
                   </div>
-                  <div className="pt-4 border-t border-slate-800/60 mt-4 flex items-center justify-between text-[10px] text-slate-500 font-mono">
+                  <div className="pt-4 border-t border-slate-200/40 mt-4 flex items-center justify-between text-[10px] text-slate-400 font-mono">
                     <span>Target user: {user?.username}</span>
                     <span>Confidence: 94%</span>
                   </div>
@@ -752,8 +752,8 @@ const Dashboard = () => {
               {/* Right Column: Dynamic Stats & Profiling */}
               <div className="lg:col-span-5 space-y-6">
                 {/* AI Financial Health Score details */}
-                <div className="bg-slate-800/40 border border-slate-800 p-6 rounded-2xl relative overflow-hidden backdrop-blur-md">
-                  <div className="absolute top-4 right-4 flex items-center gap-1.5 text-[10px] font-bold text-success bg-success/15 px-2 py-0.5 rounded-full">
+                <div className="bg-slate-50 border border-slate-200/60 p-6 rounded-2xl relative overflow-hidden shadow-sm">
+                  <div className="absolute top-4 right-4 flex items-center gap-1.5 text-[10px] font-bold text-success bg-success/10 px-2 py-0.5 rounded-full">
                     <Sparkles className="w-3 h-3 animate-pulse" /> AI Computed
                   </div>
                   <h4 className="font-bold text-xs text-slate-400 font-outfit uppercase tracking-widest mb-4">Ecosystem Score Breakdown</h4>
@@ -761,60 +761,60 @@ const Dashboard = () => {
                   <div className="space-y-4">
                     <div>
                       <div className="flex justify-between text-xs font-semibold mb-1">
-                        <span className="text-slate-300">Savings Consistency Ratio</span>
+                        <span className="text-slate-600">Savings Consistency Ratio</span>
                         <span className="text-success font-bold font-mono">{intelligence?.health?.ratings?.consistency || 'Healthy'}</span>
                       </div>
-                      <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                      <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
                         <div className="h-full bg-success rounded-full" style={{ width: `${wellnessScore}%` }} />
                       </div>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4 pt-2">
-                      <div className="p-3 bg-slate-900/65 rounded-xl border border-slate-800">
-                        <span className="text-[9px] text-slate-500 block uppercase font-bold tracking-wider">Operational Risk</span>
-                        <span className="text-xs font-extrabold text-slate-200 mt-1 block">Low Risk</span>
+                      <div className="p-3 bg-white rounded-xl border border-slate-200/60 shadow-sm">
+                        <span className="text-[9px] text-slate-400 block uppercase font-bold tracking-wider">Operational Risk</span>
+                        <span className="text-xs font-extrabold text-slate-800 mt-1 block">Low Risk</span>
                       </div>
-                      <div className="p-3 bg-slate-900/65 rounded-xl border border-slate-800">
-                        <span className="text-[9px] text-slate-500 block uppercase font-bold tracking-wider">Luxury Exposure</span>
-                        <span className="text-xs font-extrabold text-slate-200 mt-1 block">{intelligence?.health?.ratings?.luxuryexposure || 'Moderate'}</span>
+                      <div className="p-3 bg-white rounded-xl border border-slate-200/60 shadow-sm">
+                        <span className="text-[9px] text-slate-400 block uppercase font-bold tracking-wider">Luxury Exposure</span>
+                        <span className="text-xs font-extrabold text-slate-800 mt-1 block">{intelligence?.health?.ratings?.luxuryexposure || 'Moderate'}</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* AI Spending Psychology Profiler */}
-                <div className="bg-slate-800/40 border border-slate-800 p-6 rounded-2xl relative overflow-hidden backdrop-blur-md">
+                <div className="bg-slate-50 border border-slate-200/60 p-6 rounded-2xl relative overflow-hidden shadow-sm">
                   <div className="flex items-center gap-2 mb-3">
                     <Brain className="w-4 h-4 text-primary" />
-                    <h4 className="font-bold text-xs text-slate-100 font-outfit uppercase tracking-wider">AI Behavioral Profiler</h4>
+                    <h4 className="font-bold text-xs text-slate-800 font-outfit uppercase tracking-wider">AI Behavioral Profiler</h4>
                   </div>
                   
                   <div className="space-y-3.5">
                     {intelligence?.psychology ? (
                       <>
-                        <div className="flex justify-between items-center bg-slate-900/80 p-3 rounded-xl border border-slate-800">
-                          <span className="text-xs text-slate-400 font-medium">Personality Archetype</span>
+                        <div className="flex justify-between items-center bg-white p-3 rounded-xl border border-slate-200/60 shadow-sm">
+                          <span className="text-xs text-slate-500 font-medium">Personality Archetype</span>
                           <span className="px-2.5 py-1 bg-primary/10 text-primary text-[10px] font-black rounded-lg border border-primary/20">
                             {intelligence.psychology.personalityArchetype}
                           </span>
                         </div>
                         
                         <div>
-                          <div className="flex justify-between text-[11px] font-semibold mb-1 text-slate-300">
+                          <div className="flex justify-between text-[11px] font-semibold mb-1 text-slate-600">
                             <span>Self-Discipline index</span>
                             <span className="font-mono text-primary font-bold">{intelligence.psychology.selfDisciplineIndex}/100</span>
                           </div>
-                          <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                          <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
                             <div className="h-full bg-gradient-to-r from-accent to-primary rounded-full transition-all duration-1000 ease-out" style={{ width: `${intelligence.psychology.selfDisciplineIndex}%` }} />
                           </div>
                         </div>
 
-                        <p className="text-[10px] text-slate-400 leading-relaxed font-medium italic mt-2">
+                        <p className="text-[10px] text-slate-500 leading-relaxed font-medium italic mt-2">
                           "{intelligence.psychology.psychologicalDescription}"
                         </p>
                       </>
                     ) : (
-                      <div className="py-6 text-center text-xs text-slate-500 font-medium">
+                      <div className="py-6 text-center text-xs text-slate-400 font-medium">
                         Analyzing behavioral profile...
                       </div>
                     )}
@@ -826,10 +826,10 @@ const Dashboard = () => {
             {/* Bottom Row Modules: Recommendations & Projections */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pt-4">
               {/* AI Forecast & Projections */}
-              <div className="lg:col-span-5 bg-slate-800/40 border border-slate-800 p-6 rounded-2xl relative overflow-hidden backdrop-blur-md">
+              <div className="lg:col-span-5 bg-slate-50 border border-slate-200/60 p-6 rounded-2xl relative overflow-hidden shadow-sm">
                 <div className="flex items-center gap-2 mb-4">
                   <TrendingUp className="w-4 h-4 text-accent" />
-                  <h4 className="font-bold text-xs text-slate-100 font-outfit uppercase tracking-wider">AI Expense Projections Radar</h4>
+                  <h4 className="font-bold text-xs text-slate-800 font-outfit uppercase tracking-wider">AI Expense Projections Radar</h4>
                 </div>
 
                 <div className="space-y-4">
@@ -838,14 +838,14 @@ const Dashboard = () => {
                       const limitObj = budgets.find(b => b.category === cat) || { limit: 0 };
                       const isHighRisk = intelligence.forecasting.riskIndicators?.[cat]?.overrunProbability === 'HIGH';
                       return (
-                        <div key={cat} className="flex justify-between items-center text-xs border-b border-slate-800 pb-2">
+                        <div key={cat} className="flex justify-between items-center text-xs border-b border-slate-200/40 pb-2">
                           <div>
-                            <span className="text-slate-300 font-semibold">{cat}</span>
+                            <span className="text-slate-800 font-semibold">{cat}</span>
                             <span className="text-[9px] text-slate-500 block font-medium">Projected next: ₹{Math.round(f.projectedNextMonth).toLocaleString()}</span>
                           </div>
                           <div className="text-right">
                             <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${
-                              isHighRisk ? 'bg-danger/15 text-danger' : 'bg-success/15 text-success'
+                              isHighRisk ? 'bg-danger/10 text-danger' : 'bg-success/10 text-success'
                             }`}>
                               {isHighRisk ? 'Overrun Risk' : 'Optimal'}
                             </span>
@@ -855,7 +855,7 @@ const Dashboard = () => {
                       );
                     })
                   ) : (
-                    <div className="py-8 text-center text-xs text-slate-500 font-medium col-span-2">
+                    <div className="py-8 text-center text-xs text-slate-400 font-medium col-span-2">
                       Computing future forecasting indexes...
                     </div>
                   )}
@@ -863,36 +863,36 @@ const Dashboard = () => {
               </div>
 
               {/* Personal Wealth Optimization Suggestions */}
-              <div className="lg:col-span-7 bg-slate-800/40 border border-slate-800 p-6 rounded-2xl relative overflow-hidden backdrop-blur-md">
+              <div className="lg:col-span-7 bg-slate-50 border border-slate-200/60 p-6 rounded-2xl relative overflow-hidden shadow-sm">
                 <div className="flex items-center gap-2 mb-4">
                   <Lightbulb className="w-4 h-4 text-secondary animate-bounce" />
-                  <h4 className="font-bold text-xs text-slate-100 font-outfit uppercase tracking-wider">AI Smart Wealth Recommendations</h4>
+                  <h4 className="font-bold text-xs text-slate-800 font-outfit uppercase tracking-wider">AI Smart Wealth Recommendations</h4>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {intelligence?.wealth?.recommendationsList ? (
                     intelligence.wealth.recommendationsList.map((rec, index) => (
-                      <div key={index} className="p-3.5 bg-slate-900/65 border border-slate-800/80 rounded-xl space-y-2 flex flex-col justify-between relative overflow-hidden">
+                      <div key={index} className="p-3.5 bg-white border border-slate-200/60 rounded-xl space-y-2 flex flex-col justify-between relative overflow-hidden shadow-sm">
                         <span className={`absolute top-2 right-2 px-1.5 py-0.5 rounded text-[8px] font-black ${
-                          rec.priority === 'CRITICAL' ? 'bg-danger/25 text-danger' : 'bg-warning/25 text-warning'
+                          rec.priority === 'CRITICAL' ? 'bg-danger/10 text-danger border border-danger/25' : 'bg-warning/10 text-warning border border-warning/25'
                         }`}>
                           {rec.priority}
                         </span>
                         
                         <div>
-                          <h5 className="font-bold text-slate-200 text-xs tracking-tight">{rec.title}</h5>
-                          <span className="text-[9px] text-slate-500 font-bold block">{rec.category}</span>
+                          <h5 className="font-bold text-slate-800 text-xs tracking-tight">{rec.title}</h5>
+                          <span className="text-[9px] text-slate-400 font-bold block">{rec.category}</span>
                         </div>
-                        <p className="text-[10px] text-slate-400 leading-normal font-medium pt-1 border-t border-slate-800/30">
+                        <p className="text-[10px] text-slate-600 leading-normal font-medium pt-1 border-t border-slate-100">
                           {rec.action}
                         </p>
-                        <div className="pt-2 text-[9px] text-slate-500 font-mono">
+                        <div className="pt-2 text-[9px] text-slate-400 font-mono">
                           Impact: <strong className="text-secondary font-bold font-mono">{rec.impact}</strong>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="py-8 text-center text-xs text-slate-500 font-medium col-span-2">
+                    <div className="py-8 text-center text-xs text-slate-400 font-medium col-span-2">
                       Generating high-yield wealth maneuvers...
                     </div>
                   )}
