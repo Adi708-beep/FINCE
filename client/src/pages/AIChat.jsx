@@ -100,6 +100,51 @@ const AIChat = () => {
     }
   };
 
+  // Markdown parsing helper for AI Messages
+  const renderMarkdown = (text) => {
+    if (!text) return null;
+    return text.split('\n').map((line, idx) => {
+      let content = line;
+      const boldRegex = /\*\*(.*?)\*\*/g;
+      const parts = [];
+      let lastIndex = 0;
+      let match;
+      while ((match = boldRegex.exec(line)) !== null) {
+        if (match.index > lastIndex) {
+          parts.push(line.substring(lastIndex, match.index));
+        }
+        parts.push(<strong key={match.index} className="font-bold text-slate-950">{match[1]}</strong>);
+        lastIndex = boldRegex.lastIndex;
+      }
+      if (lastIndex < line.length) {
+        parts.push(line.substring(lastIndex));
+      }
+
+      if (line.trim().startsWith('-') || line.trim().startsWith('*')) {
+        const cleanContent = line.replace(/^[-*]\s+/, '');
+        return (
+          <li key={idx} className="ml-4 list-disc pl-1 mb-1 text-slate-700 font-medium">
+            {boldRegex.test(line) ? parts : cleanContent}
+          </li>
+        );
+      }
+      
+      if (line.startsWith('###')) {
+        return <h5 key={idx} className="text-xs font-bold text-slate-900 mt-3 mb-1">{line.replace(/^###\s+/, '')}</h5>;
+      }
+      if (line.startsWith('##')) {
+        return <h4 key={idx} className="text-sm font-bold text-slate-950 mt-4 mb-1.5">{line.replace(/^##\s+/, '')}</h4>;
+      }
+      if (line.startsWith('#')) {
+        return <h3 key={idx} className="text-base font-bold text-slate-950 mt-5 mb-2">{line.replace(/^#\s+/, '')}</h3>;
+      }
+
+      if (line.trim() === '') return <div key={idx} className="h-1.5" />;
+
+      return <p key={idx} className="mb-1 text-slate-700 font-medium">{parts.length > 0 ? parts : content}</p>;
+    });
+  };
+
   return (
     <div className="max-w-4xl mx-auto h-[80vh] flex flex-col justify-between glass-panel border border-darkborder overflow-hidden animate-fade-in">
       {/* Header */}
@@ -165,12 +210,12 @@ const AIChat = () => {
                   </div>
 
                   {/* Message bubble */}
-                  <div className={`p-4 rounded-2xl text-xs leading-relaxed whitespace-pre-wrap font-sans shadow-sm ${
+                  <div className={`p-4 rounded-2xl text-xs leading-relaxed font-sans shadow-sm ${
                     isAI 
                       ? 'bg-white border border-slate-200 text-slate-800 font-medium' 
                       : 'bg-gradient-to-r from-primary to-secondary text-slate-900 font-bold shadow-glow-primary/10'
                   }`}>
-                    {msg.content}
+                    {isAI ? renderMarkdown(msg.content) : msg.content}
                   </div>
                 </div>
               );

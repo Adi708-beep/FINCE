@@ -36,18 +36,21 @@ const UploadInvoice = () => {
   const [date, setDate] = useState('');
   const [tax, setTax] = useState(0);
   const [category, setCategory] = useState('');
+  const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  const [gstNumber, setGstNumber] = useState('');
   const [items, setItems] = useState([]);
 
   const categories = [
-    "Groceries", 
+    "Food", 
+    "Travel", 
     "Utilities", 
-    "Food & Dining", 
-    "Entertainment", 
-    "Travel & Transport", 
+    "Cloud Infrastructure", 
+    "Subscriptions", 
+    "Medical", 
     "Shopping", 
-    "Health & Personal Care", 
-    "Housing", 
-    "Others"
+    "Entertainment", 
+    "Operations"
   ];
 
   // Subscribe to real-time socket updates
@@ -153,7 +156,13 @@ const UploadInvoice = () => {
       setDate(rawDate.toISOString().split('T')[0]);
       
       setTax(details.tax || 0);
-      setCategory(details.category || 'Others');
+      setCategory(details.category || 'Operations');
+      setInvoiceNumber(details.invoiceNumber || '');
+      
+      const rawDueDate = details.dueDate ? new Date(details.dueDate) : null;
+      setDueDate(rawDueDate ? rawDueDate.toISOString().split('T')[0] : '');
+      
+      setGstNumber(details.gstNumber || '');
       setItems(details.items || []);
 
       setOcrLog(prev => [...prev, '[System] Gemini parsing complete.', '[System] Awaiting user confirmation...']);
@@ -207,6 +216,9 @@ const UploadInvoice = () => {
           date,
           tax,
           category,
+          invoiceNumber,
+          dueDate: dueDate || null,
+          gstNumber,
           items
         })
       });
@@ -378,12 +390,44 @@ const UploadInvoice = () => {
               </div>
 
               <div>
+                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Invoice Number</label>
+                <input
+                  type="text"
+                  value={invoiceNumber}
+                  onChange={(e) => setInvoiceNumber(e.target.value)}
+                  className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-primary text-slate-800 font-mono shadow-sm"
+                  placeholder="e.g. INV-2026-001"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">GST Identification (GSTIN)</label>
+                <input
+                  type="text"
+                  value={gstNumber}
+                  onChange={(e) => setGstNumber(e.target.value)}
+                  className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-primary text-slate-800 font-mono shadow-sm"
+                  placeholder="e.g. 27AAAAA1111A1Z1"
+                />
+              </div>
+
+              <div>
                 <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Transaction Date</label>
                 <input
                   type="date"
                   required
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
+                  className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-primary text-slate-800 font-mono shadow-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Due Date</label>
+                <input
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
                   className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-primary text-slate-800 font-mono shadow-sm"
                 />
               </div>

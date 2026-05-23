@@ -30,6 +30,9 @@ const invoiceSchema = new mongoose.Schema({
     date: { type: Date, default: Date.now },
     tax: { type: Number, default: 0 },
     category: { type: String, default: 'Uncategorized' },
+    invoiceNumber: { type: String, default: '' },
+    dueDate: { type: Date, default: null },
+    gstNumber: { type: String, default: '' },
     items: [
       {
         name: { type: String },
@@ -37,6 +40,23 @@ const invoiceSchema = new mongoose.Schema({
         quantity: { type: Number, default: 1 }
       }
     ]
+  },
+  isDuplicate: {
+    type: Boolean,
+    default: false
+  },
+  duplicateOf: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Invoice',
+    default: null
+  },
+  isAnomaly: {
+    type: Boolean,
+    default: false
+  },
+  anomalyReason: {
+    type: String,
+    default: ''
   },
   status: {
     type: String,

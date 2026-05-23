@@ -13,7 +13,9 @@ import Transaction from '../models/Transaction.js';
 import Budget from '../models/Budget.js';
 import Alert from '../models/Alert.js';
 import { authenticateToken } from '../middleware/auth.js';
-import { analyzeInvoiceText } from '../services/gemini.js';
+import { analyzeInvoiceText, analyzeInvoiceMultimodal } from '../services/gemini.js';
+import { detectDuplicateInvoice } from '../services/duplicateDetector.js';
+import { detectAnomaly } from '../services/anomalyDetector.js';
 
 const router = express.Router();
 
@@ -160,34 +162,61 @@ router.post('/upload', authenticateToken, upload.single('invoice'), async (req, 
   });
   await invoice.save();
 
-  // Run OCR in the background, but wait for it to return response to client
-  // To simulate realtime progress, we listen to tesseract's logger and emit to socket.
   try {
-    const ocrResult = await Tesseract.recognize(
-      filePath,
-      'eng',
-      {
-        langPath: serverDir,
-        logger: m => {
-          if (m.status === 'recognizing text' && req.io) {
-            req.io.to(userId.toString()).emit('ocr_progress', {
-              invoiceId: invoice._id,
-              progress: m.progress,
-              status: m.status
-            });
+    let extractedDetails;
+    let ocrText = '';
+    
+    // Attempt direct Gemini Multimodal OCR first
+    try {
+      const fileBuffer = fs.readFileSync(filePath);
+      extractedDetails = await analyzeInvoiceMultimodal(fileBuffer, mimeType);
+      ocrText = `[Direct Multimodal Extraction]\nMerchant: ${extractedDetails.merchant}\nAmount: ${extractedDetails.amount}\nInvoice No: ${extractedDetails.invoiceNumber}\nDate: ${extractedDetails.date}\nGST No: ${extractedDetails.gstNumber}\nItems: ${JSON.stringify(extractedDetails.items)}`;
+      
+      if (req.io) {
+        req.io.to(userId.toString()).emit('ocr_progress', {
+          invoiceId: invoice._id,
+          progress: 1,
+          status: 'Direct Gemini Multimodal OCR scan complete'
+        });
+      }
+    } catch (multimodalErr) {
+      console.warn("Direct multimodal OCR failed, falling back to local Tesseract OCR:", multimodalErr);
+      
+      const ocrResult = await Tesseract.recognize(
+        filePath,
+        'eng',
+        {
+          langPath: serverDir,
+          logger: m => {
+            if (m.status === 'recognizing text' && req.io) {
+              req.io.to(userId.toString()).emit('ocr_progress', {
+                invoiceId: invoice._id,
+                progress: m.progress,
+                status: m.status
+              });
+            }
           }
         }
-      }
-    );
-
-    const ocrText = ocrResult.data.text;
+      );
+      
+      ocrText = ocrResult.data.text;
+      extractedDetails = await analyzeInvoiceText(ocrText);
+    }
+    
     invoice.ocrText = ocrText;
-    
-    // Pass extracted text to Gemini for structured extraction
-    const extractedDetails = await analyzeInvoiceText(ocrText);
-    
     invoice.extractedDetails = extractedDetails;
-    invoice.status = 'pending'; // Stays pending until user reviews and confirms
+    
+    // Run Duplicate Detection
+    const duplicateResult = await detectDuplicateInvoice(userId, extractedDetails, ocrText);
+    invoice.isDuplicate = duplicateResult.isDuplicate;
+    invoice.duplicateOf = duplicateResult.duplicateOf;
+    
+    // Run Anomaly Detection
+    const anomalyResult = await detectAnomaly(userId, extractedDetails);
+    invoice.isAnomaly = anomalyResult.isAnomaly;
+    invoice.anomalyReason = anomalyResult.reason;
+    
+    invoice.status = 'pending';
     await invoice.save();
 
     res.json(invoice);
@@ -202,7 +231,7 @@ router.post('/upload', authenticateToken, upload.single('invoice'), async (req, 
 // 2. Confirm invoice & Create transaction
 router.post('/confirm/:id', authenticateToken, async (req, res) => {
   const invoiceId = req.params.id;
-  const { merchant, amount, date, tax, category, items } = req.body;
+  const { merchant, amount, date, tax, category, items, invoiceNumber, dueDate, gstNumber } = req.body;
   const userId = req.user.id;
 
   try {
@@ -218,8 +247,21 @@ router.post('/confirm/:id', authenticateToken, async (req, res) => {
       date: new Date(date),
       tax: Number(tax),
       category,
+      invoiceNumber: invoiceNumber || '',
+      dueDate: dueDate ? new Date(dueDate) : null,
+      gstNumber: gstNumber || '',
       items
     };
+
+    // Re-run duplicates and anomalies checks on confirmed values
+    const duplicateResult = await detectDuplicateInvoice(userId, invoice.extractedDetails, invoice.ocrText);
+    invoice.isDuplicate = duplicateResult.isDuplicate;
+    invoice.duplicateOf = duplicateResult.duplicateOf;
+    
+    const anomalyResult = await detectAnomaly(userId, invoice.extractedDetails);
+    invoice.isAnomaly = anomalyResult.isAnomaly;
+    invoice.anomalyReason = anomalyResult.reason;
+
     invoice.status = 'completed';
     await invoice.save();
 
@@ -232,7 +274,14 @@ router.post('/confirm/:id', authenticateToken, async (req, res) => {
       date: new Date(date),
       category,
       type: 'expense',
-      description: `Auto-generated from invoice ${invoice.fileName}`
+      description: `Auto-generated from invoice ${invoice.fileName}`,
+      invoiceNumber: invoiceNumber || '',
+      dueDate: dueDate ? new Date(dueDate) : null,
+      gstNumber: gstNumber || '',
+      gstAmount: Number(tax) || 0,
+      isDuplicate: invoice.isDuplicate,
+      isAnomaly: invoice.isAnomaly,
+      anomalyReason: invoice.anomalyReason
     });
     await transaction.save();
 
@@ -273,6 +322,9 @@ router.post('/manual', authenticateToken, async (req, res) => {
         date: new Date(date),
         tax: 0,
         category,
+        invoiceNumber: '',
+        dueDate: null,
+        gstNumber: '',
         items: [{
           name: description || `${category} Spend`,
           price: Number(amount),
@@ -280,6 +332,16 @@ router.post('/manual', authenticateToken, async (req, res) => {
         }]
       }
     });
+
+    // Run Duplicate & Anomaly checks on manual input
+    const duplicateResult = await detectDuplicateInvoice(userId, invoice.extractedDetails, invoice.ocrText);
+    invoice.isDuplicate = duplicateResult.isDuplicate;
+    invoice.duplicateOf = duplicateResult.duplicateOf;
+
+    const anomalyResult = await detectAnomaly(userId, invoice.extractedDetails);
+    invoice.isAnomaly = anomalyResult.isAnomaly;
+    invoice.anomalyReason = anomalyResult.reason;
+
     await invoice.save();
 
     // 2. Create associated Transaction
@@ -291,7 +353,10 @@ router.post('/manual', authenticateToken, async (req, res) => {
       date: new Date(date),
       category,
       type: 'expense',
-      description: description || 'Manually logged spending'
+      description: description || 'Manually logged spending',
+      isDuplicate: invoice.isDuplicate,
+      isAnomaly: invoice.isAnomaly,
+      anomalyReason: invoice.anomalyReason
     });
     await transaction.save();
 

@@ -12,7 +12,7 @@ const generateFamilyCode = () => {
 
 // Register
 router.post('/register', async (req, res) => {
-  const { username, email, password } = req.body;
+  const { username, email, password, role } = req.body;
   try {
     if (!username || !email || !password) {
       return res.status(400).json({ message: 'All fields are required' });
@@ -28,7 +28,8 @@ router.post('/register', async (req, res) => {
       username,
       email,
       password,
-      familyCode
+      familyCode,
+      role: role || 'personal'
     });
 
     await newUser.save();
@@ -46,7 +47,8 @@ router.post('/register', async (req, res) => {
         id: newUser._id,
         username: newUser.username,
         email: newUser.email,
-        familyCode: newUser.familyCode
+        familyCode: newUser.familyCode,
+        role: newUser.role
       }
     });
   } catch (error) {
@@ -57,7 +59,7 @@ router.post('/register', async (req, res) => {
 
 // Login
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, role } = req.body;
   try {
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password are required' });
@@ -73,6 +75,12 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
+    if (role && user.role !== role) {
+      return res.status(400).json({ 
+        message: `This account is registered on the ${user.role} portal. Please log in using the correct portal.` 
+      });
+    }
+
     const token = jwt.sign(
       { userId: user._id },
       process.env.JWT_SECRET || 'fince_secret_token_key_2026',
@@ -85,7 +93,8 @@ router.post('/login', async (req, res) => {
         id: user._id,
         username: user.username,
         email: user.email,
-        familyCode: user.familyCode
+        familyCode: user.familyCode,
+        role: user.role
       }
     });
   } catch (error) {

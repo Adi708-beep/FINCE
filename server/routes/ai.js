@@ -5,6 +5,7 @@ import Budget from '../models/Budget.js';
 import User from '../models/User.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { chatWithContext, generateFinancialReport, generateSavingsAuditReport } from '../services/gemini.js';
+import { detectSubscriptions } from '../services/subscriptionDetector.js';
 
 const router = express.Router();
 
@@ -26,6 +27,17 @@ router.delete('/chat', authenticateToken, async (req, res) => {
     res.json({ message: 'Conversation history cleared successfully' });
   } catch (error) {
     console.error('Error clearing chat history:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get detected subscriptions
+router.get('/subscriptions', authenticateToken, async (req, res) => {
+  try {
+    const subscriptions = await detectSubscriptions(req.user.id);
+    res.json(subscriptions);
+  } catch (error) {
+    console.error('Error fetching detected subscriptions:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -118,7 +130,10 @@ router.post('/chat', authenticateToken, async (req, res) => {
         amount: t.amount,
         date: t.date.toISOString().split('T')[0],
         category: t.category,
-        description: t.description
+        description: t.description,
+        isDuplicate: t.isDuplicate || false,
+        isAnomaly: t.isAnomaly || false,
+        anomalyReason: t.anomalyReason || ''
       })),
       budgetsContext: budgets.map(b => ({
         category: b.category,

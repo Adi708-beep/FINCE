@@ -3,7 +3,7 @@ import io from 'socket.io-client';
 
 const AuthContext = createContext();
 
-export const API_URL = 'http://localhost:5000';
+export const API_URL = localStorage.getItem('fince_api_url') || 'http://localhost:3000';
 
 export const useAuth = () => useContext(AuthContext);
 
@@ -14,6 +14,14 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [alerts, setAlerts] = useState([]);
   const [socket, setSocket] = useState(null);
+  const [mode, setMode] = useState(localStorage.getItem('fince_mode') || 'personal');
+
+  // Toggle between Personal & Business Modes
+  const toggleMode = () => {
+    const newMode = mode === 'personal' ? 'business' : 'personal';
+    setMode(newMode);
+    localStorage.setItem('fince_mode', newMode);
+  };
 
   // Configure Axios / Fetch authorization headers
   const getHeaders = () => {
@@ -38,6 +46,8 @@ export const AuthProvider = ({ children }) => {
       if (res.ok) {
         const userData = await res.json();
         setUser(userData);
+        setMode(userData.role || 'personal');
+        localStorage.setItem('fince_mode', userData.role || 'personal');
         setIsAuthenticated(true);
         fetchAlerts(authToken);
       } else {
@@ -113,12 +123,12 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // 4. Register
-  const register = async (username, email, password) => {
+  const register = async (username, email, password, role) => {
     try {
       const res = await fetch(`${API_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, email, password })
+        body: JSON.stringify({ username, email, password, role })
       });
       const data = await res.json();
       if (!res.ok) {
@@ -127,6 +137,8 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('fince_token', data.token);
       setToken(data.token);
       setUser(data.user);
+      setMode(data.user.role || 'personal');
+      localStorage.setItem('fince_mode', data.user.role || 'personal');
       setIsAuthenticated(true);
       return data;
     } catch (err) {
@@ -135,12 +147,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   // 5. Login
-  const login = async (email, password) => {
+  const login = async (email, password, role) => {
     try {
       const res = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password, role })
       });
       const data = await res.json();
       if (!res.ok) {
@@ -149,6 +161,8 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('fince_token', data.token);
       setToken(data.token);
       setUser(data.user);
+      setMode(data.user.role || 'personal');
+      localStorage.setItem('fince_mode', data.user.role || 'personal');
       setIsAuthenticated(true);
       return data;
     } catch (err) {
@@ -244,6 +258,8 @@ export const AuthProvider = ({ children }) => {
       loading,
       alerts,
       socket,
+      mode,
+      toggleMode,
       login,
       register,
       logout,

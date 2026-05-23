@@ -17,8 +17,26 @@ import {
   Menu
 } from 'lucide-react';
 
+const WorkspaceBadge = () => {
+  const { mode } = useAuth();
+  if (mode === 'business') {
+    return (
+      <div className="flex items-center gap-1.5 px-3.5 py-1.5 bg-sky-50 border border-sky-100 rounded-full text-[10px] font-bold text-sky-600 shadow-[0_2px_8px_rgba(14,165,233,0.05)] select-none">
+        <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" />
+        <span>Business Space</span>
+      </div>
+    );
+  }
+  return (
+    <div className="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary/5 border border-primary/10 rounded-full text-[10px] font-bold text-primary shadow-[0_2px_8px_rgba(230,45,169,0.05)] select-none">
+      <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+      <span>Personal Space</span>
+    </div>
+  );
+};
+
 const Navigation = ({ children }) => {
-  const { user, logout, alerts, markAlertsAsRead, clearAlerts } = useAuth();
+  const { user, logout, alerts, markAlertsAsRead, clearAlerts, mode } = useAuth();
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -47,6 +65,7 @@ const Navigation = ({ children }) => {
         </div>
         
         <div className="flex items-center gap-2">
+          <WorkspaceBadge />
           {/* Notification Bell */}
           <div className="relative">
             <button 
@@ -299,6 +318,7 @@ const Navigation = ({ children }) => {
 
           {/* Notifications and Stats */}
           <div className="flex items-center gap-4">
+            <WorkspaceBadge />
             {/* Notification Bell */}
             <div className="relative">
               <button 

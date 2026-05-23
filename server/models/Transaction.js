@@ -40,6 +40,34 @@ const transactionSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  invoiceNumber: {
+    type: String,
+    default: ''
+  },
+  dueDate: {
+    type: Date,
+    default: null
+  },
+  gstNumber: {
+    type: String,
+    default: ''
+  },
+  gstAmount: {
+    type: Number,
+    default: 0
+  },
+  isDuplicate: {
+    type: Boolean,
+    default: false
+  },
+  isAnomaly: {
+    type: Boolean,
+    default: false
+  },
+  anomalyReason: {
+    type: String,
+    default: ''
+  },
   createdAt: {
     type: Date,
     default: Date.now

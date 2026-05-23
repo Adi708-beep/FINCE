@@ -5,6 +5,8 @@ import Navigation from './components/Navigation';
 
 // Import Pages
 import LandingPage from './pages/LandingPage';
+import PersonalAuth from './pages/PersonalAuth';
+import BusinessAuth from './pages/BusinessAuth';
 import Dashboard from './pages/Dashboard';
 import UploadInvoice from './pages/UploadInvoice';
 import InvoiceHistory from './pages/InvoiceHistory';
@@ -51,12 +53,32 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Public Landing & Login/Signup */}
+          {/* Public Gateway Selection Page */}
           <Route 
             path="/" 
             element={
               <PublicRoute>
                 <LandingPage />
+              </PublicRoute>
+            } 
+          />
+
+          {/* Dedicated Personal Workspace Auth */}
+          <Route 
+            path="/personal" 
+            element={
+              <PublicRoute>
+                <PersonalAuth />
+              </PublicRoute>
+            } 
+          />
+
+          {/* Dedicated Business Workspace Auth */}
+          <Route 
+            path="/business" 
+            element={
+              <PublicRoute>
+                <BusinessAuth />
               </PublicRoute>
             } 
           />
