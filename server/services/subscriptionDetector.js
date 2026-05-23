@@ -26,23 +26,32 @@ export async function detectSubscriptions(userId) {
     const subscriptionSaaS = [
       'netflix', 'spotify', 'aws', 'gcp', 'google cloud', 'github', 'copilot', 'slack', 
       'zoom', 'adobe', 'canva', 'figma', 'notion', 'youtube premium', 'openai', 'chatgpt',
-      'dropbox', 'microsoft 365', 'office 365', 'cursor', 'amazon prime', 'cloudflare', 'digitalocean'
+      'dropbox', 'microsoft 365', 'office 365', 'cursor', 'amazon prime', 'cloudflare', 'digitalocean',
+      'apple', 'icloud', 'disney', 'hulu', 'hbo', 'crunchyroll', 'salesforce', 'jira', 'confluence',
+      'mailchimp', 'shopify', 'rent', 'electricity', 'water', 'gas', 'insurance', 'telecom', 'jio',
+      'airtel', 'recharge', 'broadband', 'hostinger', 'bluehost', 'godaddy', 'stripe', 'vercel', 'heroku'
     ];
 
     for (const [merchantName, items] of Object.entries(merchantGroups)) {
+      const isSaaSMerchant = subscriptionSaaS.some(kw => merchantName.includes(kw));
+      const hasSubscriptionMetaData = items.some(t => 
+        (t.category && t.category.toLowerCase().includes('subscription')) || 
+        (t.description && t.description.toLowerCase().includes('subscription')) ||
+        (t.description && t.description.toLowerCase().includes('recurring'))
+      );
+
       if (items.length < 2) {
         // Must have at least 2 historical charges to calculate interval
         
-        // Exceptional Rule: If it's a known popular SaaS brand and matches exactly, we can list it as suspected
-        const isSaaSMerchant = subscriptionSaaS.some(kw => merchantName.includes(kw));
-        if (isSaaSMerchant && items.length === 1) {
+        // Exceptional Rule: If it's a known popular SaaS brand or explicitly designated as Subscriptions
+        if ((isSaaSMerchant || hasSubscriptionMetaData) && items.length === 1) {
           const singleItem = items[0];
           const estNextBilling = new Date(singleItem.date);
           estNextBilling.setDate(estNextBilling.getDate() + 30);
           
           activeSubscriptions.push({
             merchant: singleItem.merchant,
-            category: 'Subscriptions',
+            category: singleItem.category || 'Subscriptions',
             amount: singleItem.amount,
             interval: 'Monthly (Suspected)',
             nextBillingDate: estNextBilling,
@@ -71,8 +80,8 @@ export async function detectSubscriptions(userId) {
       let intervalType = 'Monthly';
       let confidence = 'Medium';
 
-      // 30 days cycle (Monthly ± 5 days)
-      if (avgInterval >= 25 && avgInterval <= 35) {
+      // 30 days cycle (Monthly ± 6 days)
+      if (avgInterval >= 24 && avgInterval <= 36) {
         isSubscription = true;
         intervalType = 'Monthly';
       }
@@ -81,34 +90,45 @@ export async function detectSubscriptions(userId) {
         isSubscription = true;
         intervalType = 'Weekly';
       }
-      // 365 days cycle (Yearly ± 15 days)
-      else if (avgInterval >= 345 && avgInterval <= 385) {
+      // 365 days cycle (Yearly ± 20 days)
+      else if (avgInterval >= 340 && avgInterval <= 385) {
         isSubscription = true;
         intervalType = 'Yearly';
       }
       // Exceptional: Also flag if merchant matches known subscriptions and interval is relatively uniform
       else {
-        const isKnownSaaS = subscriptionSaaS.some(kw => merchantName.includes(kw));
-        if (isKnownSaaS && avgInterval >= 15 && avgInterval <= 50) {
+        if ((isSaaSMerchant || hasSubscriptionMetaData) && avgInterval >= 15 && avgInterval <= 60) {
           isSubscription = true;
           intervalType = 'Monthly (Custom)';
           confidence = 'High';
+        } else if (avgInterval >= 20 && avgInterval <= 45) {
+          // General monthly cycle fallback for standard repeating purchases
+          isSubscription = true;
+          intervalType = 'Monthly';
+          confidence = 'Medium';
         }
       }
 
-      if (isSubscription) {
+      if (isSubscription || hasSubscriptionMetaData) {
         const lastChargedItem = items[items.length - 1];
         const nextBillingDate = new Date(lastChargedItem.date);
         
         // Add interval days to last billing date to project next cycle
-        const daysToAdd = avgInterval >= 25 && avgInterval <= 35 ? 30 : Math.round(avgInterval);
+        let daysToAdd = 30;
+        if (avgInterval >= 5 && avgInterval <= 9) {
+          daysToAdd = 7;
+        } else if (avgInterval >= 340 && avgInterval <= 385) {
+          daysToAdd = 365;
+        } else if (avgInterval > 0) {
+          daysToAdd = Math.round(avgInterval);
+        }
         nextBillingDate.setDate(nextBillingDate.getDate() + daysToAdd);
 
         activeSubscriptions.push({
           merchant: lastChargedItem.merchant,
           category: lastChargedItem.category || 'Subscriptions',
           amount: Number(averageAmount.toFixed(2)),
-          interval: intervalType,
+          interval: isSubscription ? intervalType : 'Monthly (Suspected)',
           nextBillingDate,
           confidence: items.length >= 3 ? 'High' : confidence
         });

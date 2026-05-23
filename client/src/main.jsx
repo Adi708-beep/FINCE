@@ -6,26 +6,26 @@ import './index.css'
 // Fast API port detection on startup
 const detectApiUrl = async () => {
   const current = localStorage.getItem('fince_api_url');
-  let detected = 'http://localhost:3000';
+  let detected = 'http://localhost:5000';
   
   try {
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), 600);
-    // Ping 3000
-    await fetch('http://localhost:3000/', { signal: controller.signal });
+    // Ping 5000
+    await fetch('http://localhost:5000/', { signal: controller.signal });
     clearTimeout(id);
-    detected = 'http://localhost:3000';
+    detected = 'http://localhost:5000';
   } catch (e) {
     try {
       const controller = new AbortController();
       const id = setTimeout(() => controller.abort(), 600);
-      // Ping 2000
-      await fetch('http://localhost:2000/', { signal: controller.signal });
+      // Ping 3000
+      await fetch('http://localhost:3000/', { signal: controller.signal });
       clearTimeout(id);
-      detected = 'http://localhost:2000';
+      detected = 'http://localhost:3000';
     } catch (e2) {
       // Default fallback
-      detected = 'http://localhost:3000';
+      detected = 'http://localhost:5000';
     }
   }
 

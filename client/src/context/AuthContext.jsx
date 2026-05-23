@@ -3,7 +3,7 @@ import io from 'socket.io-client';
 
 const AuthContext = createContext();
 
-export const API_URL = localStorage.getItem('fince_api_url') || 'http://localhost:3000';
+export const API_URL = localStorage.getItem('fince_api_url') || 'http://localhost:5000';
 
 export const useAuth = () => useContext(AuthContext);
 

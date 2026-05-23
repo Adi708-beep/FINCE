@@ -3,9 +3,19 @@ import Chat from '../models/Chat.js';
 import Transaction from '../models/Transaction.js';
 import Budget from '../models/Budget.js';
 import User from '../models/User.js';
+import Invoice from '../models/Invoice.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { chatWithContext, generateFinancialReport, generateSavingsAuditReport } from '../services/gemini.js';
 import { detectSubscriptions } from '../services/subscriptionDetector.js';
+
+// Dedicated AI Autonomous Ecosystem Layer Imports
+import { chatAssistant } from '../ai/agents/financialCopilot.js';
+import { getWealthRecommendations } from '../ai/agents/recommendationEngine.js';
+import { estimateTaxesPaid } from '../ai/agents/taxAssistant.js';
+import { generateFinancialNarrative } from '../ai/agents/narrationEngine.js';
+import { auditBehavioralPsychology } from '../ai/agents/emotionalSpending.js';
+import { generateProjections } from '../ai/agents/forecastingAgent.js';
+import { calculateFinancialHealthScore } from '../ai/insights/financialHealth.js';
 
 const router = express.Router();
 
@@ -121,10 +131,11 @@ router.post('/chat', authenticateToken, async (req, res) => {
 
     const budgets = await Budget.find(budgetFilter);
 
-    // 4. Send to Gemini
-    const aiResponseContent = await chatWithContext({
-      chatHistory,
+    // 4. Send to Gemini Financial Copilot Agent
+    const aiResponseContent = await chatAssistant({
+      userId,
       userMessage: message,
+      chatHistory,
       transactionsContext: transactions.map(t => ({
         merchant: t.merchant,
         amount: t.amount,
@@ -272,6 +283,55 @@ router.get('/audit', authenticateToken, async (req, res) => {
     res.json({ report });
   } catch (error) {
     console.error('Error generating AI audit report:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// GET /intelligence - Consolidated AI Intelligence Core
+router.get('/intelligence', authenticateToken, async (req, res) => {
+  const userId = req.user.id;
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    let filter = { user: userId };
+    let budgetFilter = { user: userId };
+    if (user.familyCode) {
+      const familyUsers = await User.find({ familyCode: user.familyCode });
+      const familyUserIds = familyUsers.map(u => u._id);
+      filter = { user: { $in: familyUserIds } };
+      budgetFilter = {
+        $or: [
+          { user: userId },
+          { familyCode: user.familyCode }
+        ]
+      };
+    }
+
+    const transactions = await Transaction.find(filter).sort({ date: -1 });
+    const budgets = await Budget.find(budgetFilter);
+    const invoices = await Invoice.find(filter);
+
+    // Calculate all advanced AI engines
+    const health = calculateFinancialHealthScore(transactions, budgets);
+    const psychology = auditBehavioralPsychology(transactions, budgets);
+    const forecasting = generateProjections(transactions, budgets);
+    const tax = estimateTaxesPaid(transactions, invoices);
+    const wealth = getWealthRecommendations(transactions, budgets);
+    const narrative = generateFinancialNarrative(transactions, user.username);
+
+    res.json({
+      health,
+      psychology,
+      forecasting,
+      tax,
+      wealth,
+      narrative
+    });
+  } catch (error) {
+    console.error('Error generating consolidated AI intelligence:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

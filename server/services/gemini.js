@@ -556,8 +556,8 @@ export async function generateSavingsAuditReport({ currentMonthData, lastMonthDa
   } catch (error) {
     console.warn("Gemini generateSavingsAuditReport failed, running local comparison audit:", error.message);
     
-    const curTotal = currentMonthData.reduce((sum, c) => sum + c.value, 0);
-    const lastTotal = lastMonthData.reduce((sum, c) => sum + c.value, 0);
+    const curTotal = Object.values(currentMonthData).reduce((sum, c) => sum + c, 0);
+    const lastTotal = Object.values(lastMonthData).reduce((sum, c) => sum + c, 0);
     const diff = curTotal - lastTotal;
     const pct = lastTotal > 0 ? ((diff / lastTotal) * 100).toFixed(1) : '0';
 
