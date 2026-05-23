@@ -296,10 +296,7 @@ const Dashboard = () => {
   const anomaliesList = invoices.filter(inv => inv.isAnomaly);
 
   // Business metrics calculation
-  const businessCategories = ["Operations", "Cloud Infrastructure", "Utilities", "Travel"];
-  const totalOpEx = (analyticsData?.categoryDistribution || [])
-    .filter(c => businessCategories.some(bc => bc.toLowerCase() === c.name.toLowerCase() || (bc === "Travel" && c.name.toLowerCase().includes("travel"))))
-    .reduce((sum, c) => sum + c.value, 0);
+  const totalOpEx = (analyticsData?.categoryDistribution || []).reduce((sum, c) => sum + c.value, 0) || summary.totalExpenses || 0;
 
   const totalGst = invoices
     .filter(inv => inv.status === 'completed')
@@ -933,7 +930,7 @@ const Dashboard = () => {
               <div className="space-y-1">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Operating Spend (OpEx)</span>
                 <h3 className="text-2xl font-bold font-outfit text-slate-900">₹{totalOpEx.toLocaleString()}</h3>
-                <p className="text-[10px] text-slate-500 font-semibold">Includes Cloud, Operations, Travel</p>
+                <p className="text-[10px] text-slate-500 font-semibold">Aggregate business operational spend</p>
               </div>
               <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-xl font-outfit shadow-sm select-none">
                 ₹

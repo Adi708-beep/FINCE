@@ -20,3 +20,6 @@ server/uploads/*
 *.log
 .DS_Store
 Thumbs.db
+
+# Project backups
+Fince_back/

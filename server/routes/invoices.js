@@ -377,7 +377,16 @@ router.post('/manual', authenticateToken, async (req, res) => {
 // 3. Get all invoices for user
 router.get('/', authenticateToken, async (req, res) => {
   try {
-    const invoices = await Invoice.find({ user: req.user.id }).sort({ createdAt: -1 });
+    const user = await User.findById(req.user.id);
+    let invoiceQuery = { user: req.user.id };
+
+    if (user && user.familyCode) {
+      const familyUsers = await User.find({ familyCode: user.familyCode });
+      const familyUserIds = familyUsers.map(u => u._id);
+      invoiceQuery = { user: { $in: familyUserIds } };
+    }
+
+    const invoices = await Invoice.find(invoiceQuery).sort({ createdAt: -1 });
     res.json(invoices);
   } catch (error) {
     console.error(error);
